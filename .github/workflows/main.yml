@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Fortify Scan
+        run: |
+          sourceanalyzer -b my_build -clean
+          sourceanalyzer -b my_build "src/**/*.py"
+          sourceanalyzer -b my_build -scan -f report.fpr
+
+  cloudbuild:
+    needs: scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud using Workload Identity
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT }}
+          install_components: gke-gcloud-auth-plugin
+
+      - name: Build and push image via Cloud Build
+        run: |
+          gcloud builds submit \
+            --project="${{ secrets.GCP_PROJECT }}" \
+            --region="${{ secrets.GCP_REGION }}" \
+            --tag="gcr.io/${{ secrets.GCP_PROJECT }}/my-app:${{ github.sha }}"
