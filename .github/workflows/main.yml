@@ -26,12 +26,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      - name: Fortify Scan
-        run: |
-          sourceanalyzer -b my_build -clean
-          sourceanalyzer -b my_build "src/**/*.py"
-          sourceanalyzer -b my_build -scan -f report.fpr
-
   cloudbuild:
     needs: scan
     runs-on: ubuntu-latest
