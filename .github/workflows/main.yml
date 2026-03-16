@@ -43,14 +43,8 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Debug Provider
-        run: 'echo "Provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}"'
-
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT }}
-          install_components: gke-gcloud-auth-plugin
 
       - name: Build and push image via Cloud Build
         run: |
