@@ -55,3 +55,11 @@ jobs:
             --project="${{ secrets.GCP_PROJECT }}" \
             --region="${{ secrets.GCP_REGION }}" \
             --tag="gcr.io/${{ secrets.GCP_PROJECT }}/my-app:${{ github.sha }}"
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: python-version: "3.10"
+      - run: pip install -r requirements.txt && pytest
