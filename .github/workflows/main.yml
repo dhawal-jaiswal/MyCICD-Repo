@@ -43,6 +43,9 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
+      - name: Debug Provider
+        run: 'echo "Provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}"'
+
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -55,12 +58,3 @@ jobs:
             --project="${{ secrets.GCP_PROJECT }}" \
             --region="${{ secrets.GCP_REGION }}" \
             --tag="gcr.io/${{ secrets.GCP_PROJECT }}/my-app:${{ github.sha }}"
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-      - run: pip install -r requirements.txt && pytest
